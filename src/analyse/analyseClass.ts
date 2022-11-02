@@ -5,7 +5,7 @@ import { getExpressionProperties } from './utils'
 import { MetadataObject } from '~/types'
 
 /**
- * Extract metadata from an ExtJS class
+ * Perform statical analysis on the Syntax Tree of an ExtJS Class.
  * @param node The node to extract metadata from.
  * @returns The extracted metadata.
  */
@@ -14,24 +14,9 @@ export const analyseClass = (node: ExpressionStatement): MetadataObject => {
   const description = node.getLastChildByKind(SyntaxKind.JSDoc)?.getCommentText()
 
   // --- Analyse the class' properties and merge them.
-  const allPropertiesArray = getExpressionProperties(node).map(analyseProperty)
-  const allProperties = mergeDeep(...allPropertiesArray)
-  const { extend, mixins, statics, inheritableStatics, ...properties } = allProperties
-
-  // --- Extract extends and mixins.
-  // const propertyExtends = extend?.defaultValue ? JSON.parse(extend.defaultValue) : undefined
-  // const propertyMixins = mixins?.defaultValue ? JSON.parse(mixins.defaultValue) : undefined
-  const propertyExtends = extend?.defaultValue?.replace(/["']/g, '') || undefined
-  const propertyMixins = mixins?.defaultValue || undefined
-  const inherits = [propertyExtends, propertyMixins].flat().filter(Boolean) as string[]
-
-  // --- Extract statics and assign them to the class' properties.
-  const allStatics = { ...statics?.properties, ...inheritableStatics?.properties }
-  for (const staticProperty of Object.values(allStatics)) {
-    staticProperty.isStatic = true
-    properties[staticProperty.name] = staticProperty
-  }
+  const propertiesArray = getExpressionProperties(node).map(analyseProperty)
+  const properties = mergeDeep(...propertiesArray)
 
   // --- Return the metadata.
-  return { name, description, properties, inherits }
+  return { name, description, properties, kind: 'Class' }
 }

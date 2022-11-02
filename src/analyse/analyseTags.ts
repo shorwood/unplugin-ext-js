@@ -23,10 +23,11 @@ export const analyseTag = (tag: JSDocTag): Partial<MetadataObject> => {
   if (Node.isJSDocReturnTag(tag)) return tagData
 
   // --- Extract property/params definitions.
-  // --- At this point, we need a name.
-  if (!name) return {}
-  if (['cfg', 'property'].includes(tagName)) return { name, ...tagData }
-  if (Node.isJSDocParameterTag(tag)) return { parameters: { [name]: { name, ...tagData } } }
+  if (tagName === 'cfg') return { name, isConfig: true, ...tagData }
+  if (tagName === 'property') return { name, isConfig: false, ...tagData }
+
+  // --- Extract function parameters.
+  if (name && Node.isJSDocParameterTag(tag)) return { parameters: { [name]: { name, ...tagData } } }
 
   // --- Fallback to empty object.
   return {}
@@ -38,9 +39,12 @@ export const analyseTag = (tag: JSDocTag): Partial<MetadataObject> => {
  * @returns The extracted data.
  */
 export const analyseTags = (node: JSDoc): Partial<MetadataObject> => {
-  const tags = node.getTags()
-  const data = tags.map(analyseTag)
-  const metadata = mergeDeep(...data)
+  const metadataTags = node.getTags().map(analyseTag)
+  const metadata = mergeDeep(...metadataTags)
+
+  // --- Extract description.
+  if (!metadata.description)
+    metadata.description = node.getCommentText()
 
   return metadata
 }

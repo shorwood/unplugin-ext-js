@@ -25,6 +25,11 @@ export const analyseFiles = async(paths: MaybeArray<string>): Promise<MetadataOb
   }))
 
   // --- Find all component classes and extract their metadata.
-  const classNodes = sourceFiles.flatMap(getNodeClasses)
-  return classNodes.map(analyseClass)
+  return sourceFiles.flatMap(sourceFile => getNodeClasses(sourceFile)
+    .map(analyseClass)
+    .map(x => ({
+      sourceFileName: sourceFile.getFilePath(),
+      sourceFilePath: sourceFile.getBaseName(),
+      ...x,
+    })))
 }

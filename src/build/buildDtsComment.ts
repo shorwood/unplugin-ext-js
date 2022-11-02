@@ -1,4 +1,3 @@
-import { buildDtsCommentParameters } from './buildDtsCommentParameters'
 import { MetadataObject } from '~/types'
 
 /**
@@ -13,29 +12,29 @@ export const buildDtsComment = (metadata: MetadataObject) => {
     defaultValue,
     since,
     example,
-    parameters,
-    returnType,
+    parameters = {},
     returnDescription,
-    isStatic,
-    isPrivate,
   } = metadata
 
   // --- Generate the `@returns` tag.
-  let returnTag = ''
-  if (returnType && returnDescription) returnTag = `@return {${returnType}} ${returnDescription}`
-  else if (returnType) returnTag = `@return {${returnType}}`
-  else if (returnDescription) returnTag = `@return ${returnDescription}`
+  // let returnTag = ''
+  // if (returnType && returnDescription) returnTag = `@return {${returnType}} ${returnDescription}`
+  // else if (returnType) returnTag = `@return {${returnType}}`
+  // else if (returnDescription) returnTag = `@return ${returnDescription}`
+
+  // --- Generate the `@param` tags.
+  const parameterTags = Object.values(parameters)
+    .map(({ name, description }) => ['@param', name, description].filter(Boolean).join(' ').trim())
+    .join('\n')
 
   // --- Generate JSDoc.
   const comment = [
     description,
     defaultValue && defaultValue.length < 16 && `@default ${defaultValue}`,
-    parameters && `\n${buildDtsCommentParameters(parameters)}`,
-    returnTag,
+    parameterTags && `\n${parameterTags}`,
+    returnDescription && `@return ${returnDescription}`,
     since && `@since \`${since}\``,
     example && `@example\n${example}`,
-    isStatic && '@static',
-    isPrivate && '@private',
   ]
     .filter(Boolean)
     .join('\n')

@@ -28,12 +28,16 @@ export interface MetadataObject {
   isPrivate?: boolean
   /** Whether the property is protected. */
   isProtected?: boolean
+  /** Whether the property is a `config` property. */
+  isConfig?: boolean
   /** The properties defined in the property. */
   properties?: Record<string, MetadataObject>
   /** The parameters defined in the property. */
   parameters?: Record<string, MetadataObject>
-  /** The name of the classes that this class extends. */
-  inherits?: string[]
+  /** The name of the class the property extends. */
+  extend?: string
+  /** The names of the classes the property mixes in. */
+  mixins?: string[]
 }
 
 export interface Metadata {

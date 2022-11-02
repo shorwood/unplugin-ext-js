@@ -1,5 +1,6 @@
 export * from './buildDts'
 export * from './buildDtsClass'
 export * from './buildDtsComment'
+export * from './buildDtsObject'
 export * from './buildDtsOverload'
 export * from './buildDtsProperty'

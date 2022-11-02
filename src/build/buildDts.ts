@@ -20,7 +20,7 @@ export const buildDts = (classes: MaybeArray<MetadataObject>): string => {
       const declarations = classes.map(buildDtsClass)
         .map(x => x.split('\n').map(x => `  ${x}`).join('\n'))
         .join('\n')
-      return `export declare namespace ${namespace} {\n${declarations}\n}`
+      return `declare namespace ${namespace} {\n${declarations}\n}`
     })
     .join('\n\n')
 
@@ -30,7 +30,7 @@ export const buildDts = (classes: MaybeArray<MetadataObject>): string => {
     .join('\n')
     .split('\n')
     .map(x => `  ${x}`).join('\n')
-  const overloadsDeclaration = `export declare namespace Ext {\n${overloads}\n}`
+  const overloadsDeclaration = `declare namespace Ext {\n${overloads}\n}`
 
   // --- Generate the final declaration file.
   return [classDeclarations, overloadsDeclaration].filter(Boolean).join('\n\n')

@@ -59,7 +59,7 @@ export const parseTag = (tag: JSDocTag): ParseTagReturnType => {
 
   // --- Fallback to regular expression parsing.
   if (!text) return { tagName }
-  const regexp = /({(?<type>.+)} +)?((?<name>[\w.]+)|(\[(?<nameOptional>[\w.]+)(=(?<defaultValue>[^\]]+?))?]))?(?:\s*(?<description>.*))?/
+  const regexp = /^({(?<type>[^}]+)} +)?((?<name>[\w.]+)|(\[(?<nameOptional>[\w.]+)(=(?<defaultValue>[^\]]+?))?]))?(?:\s*(?<description>.*))?$/s
   const match = text.match(regexp)
   const groups = match?.groups
   if (!groups) return { tagName }
@@ -70,7 +70,7 @@ export const parseTag = (tag: JSDocTag): ParseTagReturnType => {
     name: groups.nameOptional || groups.name,
     type: groups.type,
     description: groups.description?.trim() || undefined,
-    isOptional: !!groups.nameOptional,
+    isOptional: !groups.description?.includes('(required)'),
     defaultValue: groups.defaultValue,
   }
 }

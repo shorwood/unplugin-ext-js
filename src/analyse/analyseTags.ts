@@ -41,10 +41,6 @@ export const analyseTag = (tag: JSDocTag): Partial<MetadataObject> => {
 export const analyseTags = (node: JSDoc): Partial<MetadataObject> => {
   const metadataTags = node.getTags().map(analyseTag)
   const metadata = mergeDeep(...metadataTags)
-
-  // --- Extract description.
-  if (!metadata.description)
-    metadata.description = node.getCommentText()
-
+  if (!metadata.description) metadata.description = node.getCommentText()
   return metadata
 }

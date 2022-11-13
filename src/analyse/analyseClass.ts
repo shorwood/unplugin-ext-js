@@ -1,7 +1,7 @@
 import { mergeDeep } from '@hsjm/shared'
 import { ExpressionStatement, SyntaxKind } from 'ts-morph'
 import { analyseProperty } from './analyseProperty'
-import { getExpressionProperties } from './utils'
+import { getNodeProperties, logTree } from './utils'
 import { MetadataObject } from '~/types'
 
 /**
@@ -10,13 +10,25 @@ import { MetadataObject } from '~/types'
  * @returns The extracted metadata.
  */
 export const analyseClass = (node: ExpressionStatement): MetadataObject => {
-  const name = node.getFirstDescendantByKindOrThrow(SyntaxKind.StringLiteral).getText().replace(/["']/g, '')
+  const expression = node.getExpression()
+  const syntaxList = expression.getFirstChildByKindOrThrow(SyntaxKind.SyntaxList)
+  const name = syntaxList.getChildAtIndexIfKindOrThrow(0, SyntaxKind.StringLiteral).getLiteralValue()
   const description = node.getLastChildByKind(SyntaxKind.JSDoc)?.getCommentText()
 
   // --- Analyse the class' properties and merge them.
-  const propertiesArray = getExpressionProperties(node).map(analyseProperty)
+  const propertiesArray = syntaxList
+    .getFirstChildByKindOrThrow(SyntaxKind.ObjectLiteralExpression)
+    .getPropertiesWithComments()
+    .map(analyseProperty)
   const properties = mergeDeep(...propertiesArray)
 
   // --- Return the metadata.
-  return { name, description, properties, kind: 'Class' }
+  return {
+    name,
+    description,
+    properties,
+    kind: 'Class',
+    filePath: node.getSourceFile().getFilePath(),
+    fileName: node.getSourceFile().getBaseName(),
+  }
 }

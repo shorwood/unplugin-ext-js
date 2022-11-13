@@ -38,6 +38,10 @@ export interface MetadataObject {
   extend?: string
   /** The names of the classes the property mixes in. */
   mixins?: string[]
+  /** Path to the file the property is defined in. */
+  filePath?: string
+  /** Name of the file the property is defined in. */
+  fileName?: string
 }
 
 export interface Metadata {

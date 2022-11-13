@@ -1,7 +1,7 @@
-import { Node, PropertyAssignment, SyntaxKind } from 'ts-morph'
+import { MethodDeclaration, Node, PropertyAssignment, ShorthandPropertyAssignment, SyntaxKind } from 'ts-morph'
 import { mapKeys, mergeDeep } from '@hsjm/shared'
 import { analyseTags } from './analyseTags'
-import { getNodeType } from './utils'
+import { getNodeProperties, getNodeType } from './utils'
 import { MetadataObject } from '~/types'
 
 /**
@@ -15,9 +15,13 @@ import { MetadataObject } from '~/types'
  * @param node The node to extract metadata from.
  * @returns The extracted metadata entries.
  */
-export const analyseProperty = (node: PropertyAssignment): Record<string, MetadataObject> => {
-  const expression = node.getInitializerOrThrow()
+export const analyseProperty = (node: Node): Record<string, MetadataObject> => {
   const comments = node.getChildrenOfKind(SyntaxKind.JSDoc)
+
+  let expression: Node | undefined
+  if (Node.isPropertyAssignment(node)) expression = node.getInitializerOrThrow()
+  else if (Node.isShorthandPropertyAssignment(node)) expression = node.getInitializerOrThrow()
+  else expression = node
 
   // --- Initialize the property metadata.
   const metadataFromProperty: MetadataObject = {
@@ -35,15 +39,15 @@ export const analyseProperty = (node: PropertyAssignment): Record<string, Metada
 
   // --- If property is an object, analyse it's properties.
   if (Node.isObjectLiteralExpression(expression)) {
-    const propertiesArray = expression
-      .getChildSyntaxListOrThrow()
-      .getChildrenOfKind(SyntaxKind.PropertyAssignment)
-      .map(analyseProperty)
+    const propertiesArray = getNodeProperties(expression).map(analyseProperty)
     metadataFromProperty.properties = mergeDeep(...propertiesArray)
   }
 
   // --- If property is a function, extract it's signature.
-  if (Node.isFunctionExpression(expression)) {
+  if (Node.isFunctionExpression(expression)
+    || Node.isFunctionDeclaration(expression)
+    || Node.isMethodDeclaration(expression)
+    || Node.isArrowFunction(expression)) {
     const parameters = expression
       .getParameters()
       .map(parameter => ({

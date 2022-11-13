@@ -14,13 +14,9 @@ export const buildDtsComment = (metadata: MetadataObject) => {
     example,
     parameters = {},
     returnDescription,
+    filePath,
+    fileName,
   } = metadata
-
-  // --- Generate the `@returns` tag.
-  // let returnTag = ''
-  // if (returnType && returnDescription) returnTag = `@return {${returnType}} ${returnDescription}`
-  // else if (returnType) returnTag = `@return {${returnType}}`
-  // else if (returnDescription) returnTag = `@return ${returnDescription}`
 
   // --- Generate the `@param` tags.
   const parameterTags = Object.values(parameters)
@@ -31,20 +27,22 @@ export const buildDtsComment = (metadata: MetadataObject) => {
   const comment = [
     description,
     defaultValue && defaultValue.length < 16 && `@default ${defaultValue}`,
-    parameterTags && `\n${parameterTags}`,
+    parameterTags,
     returnDescription && `@return ${returnDescription}`,
     since && `@since \`${since}\``,
     example && `@example\n${example}`,
+    filePath ? `@see [${fileName}](${filePath})` : '',
   ]
     .filter(Boolean)
     .join('\n')
     .trim()
+    .replace(/^_{4}/gm, '    ')
     .split('\n')
     .map(x => ` * ${x}`.trimEnd())
     .join('\n')
 
   // --- Return nothing if no comment.
-  if (comment.length < 10) return ''
+  if (comment.length < 3) return ''
 
   return `/**\n${comment}\n */`
 }

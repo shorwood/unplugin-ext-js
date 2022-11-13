@@ -26,14 +26,15 @@ export const preprocessNesting = <T extends Record<string, any>>(object: T): T =
     object[parentKey] = object[parentKey] ?? { name: parentKey }
     object[parentKey].properties = object[parentKey].properties ?? {}
     object[parentKey].properties[childKey] = { ...value, name: childKey }
+
+    // --- Delete the original property.
     delete object[key]
   }
 
   // --- Recursively apply the nesting to the properties.
   for (const key in object) {
-    const value = object[key]
-    if (typeof value !== 'object') continue
-    object[key] = preprocessNesting(value)
+    if (key !== 'properties') continue
+    object[key] = preprocessNesting(object[key])
   }
 
   // --- Return the transformed object.

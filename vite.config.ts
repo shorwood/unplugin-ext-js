@@ -4,9 +4,8 @@ import { defineConfig } from 'vite'
 
 export default defineConfig({
   test: {
-    api: {
-      port: 9000,
-    },
+    api: { port: 9000 },
+    globals: true,
     coverage: {
       all: true,
       reporter: ['clover', 'cobertura', 'lcov', 'text'],

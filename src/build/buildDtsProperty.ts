@@ -21,8 +21,9 @@ export const buildDtsProperty = (property: MetadataObject) => {
   } = property
 
   // --- Initialize the type set.
+
   const typeArray = type.split('|').map(x => x.trim()).filter(Boolean)
-  const typeSet = new Set(typeArray)
+  let typeSet = new Set(typeArray)
   if (defaultType) typeSet.add(defaultType)
 
   // --- If the property is an object, generate it's definition.
@@ -33,7 +34,9 @@ export const buildDtsProperty = (property: MetadataObject) => {
   }
 
   // --- Otherwise, if the property is a function, generate it's signature.
-  else if (kind?.startsWith('Function')) {
+  else if (kind?.startsWith('Function')
+    || kind?.startsWith('ArrowFunction')
+    || kind?.startsWith('Method')) {
     const functionParameters = Object
       .values(parameters)
       .map((parameter) => {
@@ -46,25 +49,20 @@ export const buildDtsProperty = (property: MetadataObject) => {
     typeSet.add(`(${functionParameters}) => ${returnType}`)
   }
 
-  // --- Make sure only class properties have keywords.
+  // --- Make sure only class properties have no keywords.
   else if (kind === 'Class') {
     isPrivate = false
     isStatic = false
   }
 
   // --- Remove `null` or `undefined` from the type.
-  if (typeSet.has('null') || typeSet.has('undefined')) {
-    typeSet.delete('null')
-    typeSet.delete('undefined')
-    isOptional = true
-  }
+  if (typeSet.has('null') || typeSet.has('undefined')) isOptional = true
+  typeSet.delete('any')
+  typeSet.delete('null')
+  typeSet.delete('undefined')
 
-  // --- Wrap arrow function types
-  for (const type of typeSet) {
-    if (!type.includes('=>')) continue
-    typeSet.delete(type)
-    typeSet.add(`(${type})`)
-  }
+  // --- Wrap arrow function if there are multiple types.
+  if (typeSet.size > 1) typeSet = new Set([...typeSet].map(x => (x.includes('=>') ? `(${x})` : x)))
 
   // --- Compute keywords.
   const privateKeyword = isPrivate ? 'private ' : ''

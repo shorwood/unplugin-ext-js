@@ -62,7 +62,9 @@ export const formatComment = (content: string): string => (
 
   // --- Preserve code blocks.
   // .replace(/(^ *\* {5}.+$[\S\s](?:^ *\*$[\S\s])?)+/gm, formatCodeBlock)
+    .replace(/^ *\* {5}/gm, ' * ____')
     .replace(/<code>(.+?)<\/code>/g, '`$1`')
+    .replace(/\* #{4}([^\n]+)/g, '* ### $1')
 
     // --- Convert 4 spaces to 2 spaces.
     .trim()

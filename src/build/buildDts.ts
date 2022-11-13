@@ -9,7 +9,7 @@ import { MetadataObject } from '~/types'
  * @returns The generated TypeScript declaration file.
  */
 export const buildDts = (classes: MaybeArray<MetadataObject>): string => {
-  classes = arrayify(classes)
+  classes = arrayify(classes).filter(x => x.name !== '$')
 
   // --- Group the classes by their namespace.
   const namespaces = groupBy(classes, cls => cls.name.split('.').slice(0, -1).join('.') ?? '')
@@ -25,13 +25,8 @@ export const buildDts = (classes: MaybeArray<MetadataObject>): string => {
     .join('\n\n')
 
   // --- Generate the overloads for the `Ext.create` function.
-  const overloads = classes
-    .map(buildDtsOverload)
-    .join('\n')
-    .split('\n')
-    .map(x => `  ${x}`).join('\n')
-  const overloadsDeclaration = `declare namespace Ext {\n${overloads}\n}`
+  const overloadsDeclaration = buildDtsOverload(classes)
 
-  // --- Generate the final declaration file.
+  // --- Return the generated declaration file.
   return [classDeclarations, overloadsDeclaration].filter(Boolean).join('\n\n')
 }
